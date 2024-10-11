@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+const Login = ({ setIsAuthenticated }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -23,9 +23,19 @@ const Login = () => {
         try {
             const res = await axios.post('http://localhost:5000/api/login', { email, password });
             console.log('Login successful!', res.data.token);
+
+            // Save token in localStorage
             localStorage.setItem('token', res.data.token);
+            
+            // Set authenticated state in the parent component (App.js)
+            setIsAuthenticated(true);
+            
+
             alert('Login successful!');
+            
+            // Redirect to home or another page as needed
             navigate('/');
+
         } catch (err) {
             console.error('Login error:', err.response ? err.response.data : err.message);
             setError('Invalid credentials');
@@ -49,7 +59,7 @@ const Login = () => {
                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                 background: 'linear-gradient(135deg, #6a11cb, #2575fc)', // Gradient background for the form
                 color: '#fff',
-                height:"400px"
+                height: "400px"
             }}>
                 <h2 className="text-center mb-4">Login</h2>
                 <form onSubmit={handleSubmit}>

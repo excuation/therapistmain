@@ -1,27 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import html2pdf from 'html2pdf.js'; // Import html2pdf
+import html2pdf from 'html2pdf.js';
 
 const BookAppointment = () => {
-  const { id } = useParams();  // Fetch therapist ID from the URL
+  const { id } = useParams(); // Fetch therapist ID from the URL
   const [therapist, setTherapist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     userName: '',
     userEmail: '',
-    doctorName: '' // Automatically set this based on the therapist's details
+    doctorName: ''
   });
+  
+  // State to store therapist ID - optional here if getting from params
+  
+  const [therapistId, setTherapistId] = useState(id); // Initialize with the therapist ID from the URL
+ 
 
   useEffect(() => {
     const fetchTherapist = async () => {
+      
       try {
-        console.log("hi");
-        const response = await fetch(`http://localhost:5000/api/therapists/${id}`);  // Fetch therapist details using therapist ID
+       
+        const response = await fetch(`http://localhost:5000/api/therapists/${therapistId}`);
         if (!response.ok) throw new Error('Therapist not found');
         const data = await response.json();
         setTherapist(data);
-        setFormData(prev => ({ ...prev, doctorName: data.name }));  // Set the therapist's name in the form data
+        setFormData(prev => ({ ...prev, doctorName: data.name }));
+        console.log(data.name);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -30,7 +37,8 @@ const BookAppointment = () => {
     };
 
     fetchTherapist();
-  }, [id]);
+  }, [therapistId]); // Re-fetch if therapistId changes
+  console.log("ji"+therapistId);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,7 +48,7 @@ const BookAppointment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Generate PDF for appointment details
+    // Generate PDF and send email with appointment details
     const element = document.getElementById('pdf-content');
     const pdfOptions = {
       margin: 1,
@@ -50,27 +58,28 @@ const BookAppointment = () => {
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
-    // Generate the PDF
     html2pdf().from(element).set(pdfOptions).save().then(() => {
-      // After saving the PDF, send it via email by calling the backend
-      sendEmailWithPDF();
+      sendEmailWithPDF(); // Call after saving the PDF
     });
   };
 
   const sendEmailWithPDF = async () => {
-    // Sending the email with the appointment details to the backend
+    const token = localStorage.getItem('token');
     await fetch('http://localhost:5000/api/appointments/book', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         userName: formData.userName,
         userEmail: formData.userEmail,
         doctorName: formData.doctorName,
-        appointmentTime: new Date(),  // You can get this from user input if needed
+        appointmentTime: new Date(),
+        therapistId, // Include therapistId in the request
         message: "Appointment details attached"
+     
       })
     });
   };
+
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;

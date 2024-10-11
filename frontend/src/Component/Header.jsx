@@ -3,19 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import Logo from '../Buttons/Logo.jpg';
 
-const Header = ({ profilePicture }) => { // Accept profilePicture as a prop
+const Header = ({ isAuthenticated, profilePicture, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate(); // Use useNavigate for navigation
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     if (searchQuery) {
-      navigate(`/theripest?query=${encodeURIComponent(searchQuery)}`); // Encode query for URL
+      navigate(`/theripest?query=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -26,7 +26,6 @@ const Header = ({ profilePicture }) => { // Accept profilePicture as a prop
           <Link
             to="/"
             className="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none"
-            style={{ textDecoration: 'none' }}
           >
             <img src={Logo} alt="Logo" style={{ width: '40px', height: '32px', marginRight: '8px', borderRadius: '45%' }} />
             <span className="fs-4 text-white"></span>
@@ -39,7 +38,6 @@ const Header = ({ profilePicture }) => { // Accept profilePicture as a prop
             <li><Link to="/help" className="nav-link px-2 text-white">Help</Link></li>
           </ul>
 
-          {/* Search Form */}
           <form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" onSubmit={handleSearchSubmit}>
             <input
               type="search"
@@ -47,43 +45,45 @@ const Header = ({ profilePicture }) => { // Accept profilePicture as a prop
               placeholder="Select Therapist Name"
               aria-label="Search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Update state on input change
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </form>
 
           <div className="text-end d-flex align-items-center">
-            <Link to="/login" className="btn btn-outline-light me-2">Login</Link>
-            <Link to="/signup" className="btn btn-warning">Sign-up</Link>
-
-            {/* Profile Icon and Dropdown */}
-            <div className="dropdown ms-3">
-              <button
-                className="btn btn-outline-light d-flex align-items-center"
-                onClick={toggleDropdown}
-              >
-                {profilePicture ? ( // Check if profilePicture exists
-                  <img
-                    src={`http://localhost:5000/${profilePicture}`} // Display profile picture
-                    alt="Profile"
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                    }}
-                  />
-                ) : (
-                  <FaUserCircle size={24} />
+            {!isAuthenticated ? (
+              <>
+                <Link to="/login" className="btn btn-outline-light me-2">Login</Link>
+                <Link to="/signup" className="btn btn-warning">Sign-up</Link>
+              </>
+            ) : (
+              <div className="dropdown ms-3">
+                <button
+                  className="btn btn-outline-light d-flex align-items-center"
+                  onClick={toggleDropdown}
+                >
+                  {profilePicture ? (
+                    <img
+                      src={`http://localhost:5000/${profilePicture}`}
+                      alt="Profile"
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                      }}
+                    />
+                  ) : (
+                    <FaUserCircle size={24} />
+                  )}
+                </button>
+                {dropdownOpen && (
+                  <ul className="dropdown-menu dropdown-menu-end show">
+                    <li><Link className="dropdown-item" to="/profile">Profile</Link></li>
+                    <li><Link className="dropdown-item" to="/history">History</Link></li>
+                    <li><Link className="dropdown-item" onClick={onLogout}>Sign Out</Link></li>
+                  </ul>
                 )}
-              </button>
-
-              {dropdownOpen && (
-                <ul className="dropdown-menu dropdown-menu-end show">
-                  <li><Link className="dropdown-item" to="/profile">Profile</Link></li>
-                  <li><Link className="dropdown-item" to="/history">History</Link></li>
-                  <li><Link className="dropdown-item" to="/signout">Sign Out</Link></li>
-                </ul>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -92,3 +92,4 @@ const Header = ({ profilePicture }) => { // Accept profilePicture as a prop
 };
 
 export default Header;
+``

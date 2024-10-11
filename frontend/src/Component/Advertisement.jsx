@@ -51,7 +51,7 @@ const styles = {
     alignItems: 'center',
     padding: '2rem',
     backgroundColor: '#212529', // Dark background to make text stand out
-    borderRadius: '15px',
+   
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
     maxWidth: '100%',
     

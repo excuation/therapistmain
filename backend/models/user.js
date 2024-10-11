@@ -17,6 +17,6 @@ const UserSchema = new mongoose.Schema({
     profilePicture: {
         type: String, // Field for storing profile picture path
     },
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

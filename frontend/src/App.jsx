@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './Component/Header';
 import Footer from './Component/Footer';
 import Cart from './Component/Cart';
@@ -19,28 +19,46 @@ import Theripest from './Component/Theripest';
 import BookAppointment from './Component/BookAppointment';
 
 const App = () => {
-  const [profilePicture, setProfilePicture] = useState(null); // State for profile picture
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
+
+  useEffect(() => {
+    // Check if user is authenticated (e.g., by checking a token in localStorage)
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true); // User is logged in
+      // Optionally, fetch the user's profile picture if stored somewhere
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token'); // Clear token
+    setIsAuthenticated(false); // Set user as logged out
     setProfilePicture(null); // Clear profile picture
   };
 
   return (
     <Router>
-      <Header profilePicture={profilePicture} /> {/* Pass profilePicture as prop */}
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        profilePicture={profilePicture} 
+        onLogout={handleLogout} 
+      />
       <Routes>
         <Route path="/" element={<><Cart /><Advertisement /><Review /></>} />
         <Route path="/information" element={<Information />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/help" element={<Help />} />
         <Route path="/history" element={<History />} />
         <Route 
           path="/signout" 
-          element={<Signout onSignOut={handleLogout} />} // Pass handleLogout as prop
+          element={<Signout onSignOut={handleLogout} />} 
         />
-        <Route path="/profile" element={<Profile setProfilePicture={setProfilePicture} />} /> {/* Pass setter function */}
+        <Route 
+          path="/profile" 
+          element={<Profile setProfilePicture={setProfilePicture} />} 
+        />
         <Route path="/tickets" element={<Tickets />} />
         <Route path="/services" element={<Explore />} />
         <Route path="/theripest" element={<Theripest />} />

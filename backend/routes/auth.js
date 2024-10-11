@@ -6,6 +6,9 @@ const path = require('path');
 const User = require('../models/user');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
+const History = require('../models/history');
+ // Import the History model
+
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'yourSecretKey';
@@ -74,6 +77,15 @@ router.post('/login', async (req, res) => {
 
         const payload = { user: { id: user.id } };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+        const newHistory = new History({
+            userId: user._id,
+            username: user.name,
+            action: 'Login', // Action ko define karo
+            email: user.email,
+            date: new Date(),
+          });
+      
+          await newHistory.save();
 
         return res.json({ token });
     } catch (err) {
@@ -81,7 +93,6 @@ router.post('/login', async (req, res) => {
         return res.status(500).send('Server error');
     }
 });
-
 // Protected Profile Route
 router.get('/profile', authMiddleware, async (req, res) => {
     try {
