@@ -12,7 +12,7 @@ const Profile = ({ setProfilePicture }) => {
         const fetchUserProfile = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:5000/api/profile', {
+                const response = await axios.get('https://therapist1.onrender.com', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -40,7 +40,7 @@ const Profile = ({ setProfilePicture }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:5000/api/upload-profile-picture', formData, {
+            const response = await axios.post('https://therapist1.onrender.com', formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
