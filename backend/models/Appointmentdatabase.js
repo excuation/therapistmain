@@ -8,6 +8,8 @@ const appointmentSchema = new mongoose.Schema({
     doctorName: { type: String, required: true }, // Therapist's name (doctor's name)
     appointmentTime: { type: Date, required: true }, // Appointment time
     message: { type: String } // Optional message from the user
+    ,location: { type: String, required: true },         // New field for location
+    disease: { type: String, required: true }, 
 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

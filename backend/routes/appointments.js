@@ -10,10 +10,12 @@ const nodemailer = require('nodemailer');
 const path = require('path'); // <-- Import path module
 
 // Route to book an appointment
+// Route to book an appointment
 router.post('/book', authMiddleware, async (req, res) => {
     try {
-        const { therapistId, appointmentTime, message } = req.body;
+        const { therapistId, appointmentTime, message, location, disease } = req.body;
         const pdfPath = path.join(__dirname, '../uploads', `appointment-${Date.now()}.pdf`);
+        console.log(req.body); // Log the request body to verify input values
 
         // Fetch the therapist details from the database
         const therapist = await Therapist.findById(therapistId);
@@ -34,7 +36,9 @@ router.post('/book', authMiddleware, async (req, res) => {
             therapistId: therapist._id, // ID of the therapist
             doctorName: therapist.name, // Name of the therapist
             appointmentTime, // Appointment time from the request body
-            message // Optional message from the request body
+            message, // Optional message from the request body
+            location, // Add location field
+            disease,  // Add disease field
         });
 
         // Save the appointment to the database
@@ -53,8 +57,8 @@ router.post('/book', authMiddleware, async (req, res) => {
 
         await newHistory.save();
 
-        // Generate the PDF
-        await generatePDF(pdfPath, userName, therapist.name, appointmentTime);
+        // Generate the PDF, pass location and disease to the function
+        await generatePDF(pdfPath, userName, therapist.name, appointmentTime, location, disease);
 
         // Send the email with the PDF attachment
         await sendEmail(userEmail, pdfPath);
@@ -68,18 +72,21 @@ router.post('/book', authMiddleware, async (req, res) => {
 });
 
 // Function to generate PDF
-const generatePDF = (pdfPath, userName, doctorName, appointmentTime) => {
+const generatePDF = (pdfPath, userName, doctorName, appointmentTime, location, disease) => {
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument();
         const writeStream = fs.createWriteStream(pdfPath);
-
+        console.log(location); // This should now output the correct location
+      
         doc.pipe(writeStream);
-        doc.fontSize(25).text('Appointment Confirmation', { align: 'center' });
+        doc.fontSize(30).text('Appointment Confirmation', { align: 'center' });
         doc.moveDown();
-        doc.fontSize(16).text(`Name: ${userName}`);
+        doc.fontSize(20).text(`Name: ${userName}`);
         doc.text(`Doctor Name: ${doctorName}`);
-        doc.text(`Appointment Time: ${appointmentTime}`);
-        
+        doc.text(`Appointment Date: ${appointmentTime}`);
+        doc.text(`Location: ${location}`); // Add location to PDF content
+        doc.text(`Disease: ${disease}`); // Add disease to PDF content
+
         // End the document properly
         doc.end();
 
@@ -93,10 +100,13 @@ const generatePDF = (pdfPath, userName, doctorName, appointmentTime) => {
     });
 };
 
+
 // Function to send email with PDF attachment
 const sendEmail = async (toEmail, pdfPath) => {
     let transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465, // or 587 for TLS
+        secure: true, // use SSL
         auth: {
             user: "anuragsharma07575@gmail.com",  
             pass: "cpwo hjxb xfmx wrgg",  

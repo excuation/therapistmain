@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { FaCalendarAlt } from 'react-icons/fa'; // Import an icon (e.g., calendar)
 
 const Theripest = () => {
   const [searchResults, setSearchResults] = useState([]);
@@ -39,16 +40,31 @@ const Theripest = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
+    <div style={{ backgroundColor: 'black', padding: '20px', color: 'white' }}>
       {searchResults.length > 0 ? (
         searchResults.map(item => (
-          <div key={item._id}>
-            <h3>{item.doctorDetails.name}</h3> {/* Accessing nested doctorDetails */}
-            <p>Specialization: {item.doctorDetails.specialization}</p> {/* Accessing specialization */}
-            <p>Experience: {item.doctorDetails.experience} years</p> {/* Accessing experience */}
-            <p>{item.description}</p> {/* Description of the doctor */}
-            {/* Add Book Appointment Button */}
-            <button onClick={() => navigate(`/book-appointment/${item._id}`)}>Book Appointment</button>
+          <div key={item._id} style={{ marginBottom: '20px' }}>
+            <h3>{item.doctorDetails.name}</h3>
+            <p>Specialization: {item.doctorDetails.specialization}</p>
+            <p>Experience: {item.doctorDetails.experience} years</p>
+            <p>{item.description}</p>
+            {/* Add Book Appointment Button with Icon */}
+            <button
+              onClick={() => navigate(`/book-appointment/${item._id}`)}
+              style={{
+                backgroundColor: 'blue',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                padding: '10px 15px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <FaCalendarAlt style={{ marginRight: '5px' }} /> {/* Icon */}
+              Book Appointment
+            </button>
           </div>
         ))
       ) : (
