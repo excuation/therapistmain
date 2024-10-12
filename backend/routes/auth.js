@@ -24,7 +24,17 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id).select('-password'); // Exclude the password field
+      if (!user) return res.status(404).json({ message: 'User not found' });
+  
+      res.json(user);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
 // Sign Up Route
 router.post('/signup', async (req, res) => {
     const { name, email, password, confirmPassword } = req.body;
@@ -76,16 +86,8 @@ router.post('/login', async (req, res) => {
         }
 
         const payload = { user: { id: user.id } };
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
-        const newHistory = new History({
-            userId: user._id,
-            username: user.name,
-            action: 'Login', // Action ko define karo
-            email: user.email,
-            date: new Date(),
-          });
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '2d' });
       
-          await newHistory.save();
 
         return res.json({ token });
     } catch (err) {

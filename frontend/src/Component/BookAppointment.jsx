@@ -12,23 +12,16 @@ const BookAppointment = () => {
     userEmail: '',
     doctorName: ''
   });
-  
-  // State to store therapist ID - optional here if getting from params
-  
-  const [therapistId, setTherapistId] = useState(id); // Initialize with the therapist ID from the URL
- 
 
+  // Fetch therapist data and set it
   useEffect(() => {
     const fetchTherapist = async () => {
-      
       try {
-       
-        const response = await fetch(`http://localhost:5000/api/therapists/${therapistId}`);
+        const response = await fetch(`http://localhost:5000/api/therapists/${id}`);
         if (!response.ok) throw new Error('Therapist not found');
         const data = await response.json();
         setTherapist(data);
         setFormData(prev => ({ ...prev, doctorName: data.name }));
-        console.log(data.name);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -37,13 +30,33 @@ const BookAppointment = () => {
     };
 
     fetchTherapist();
-  }, [therapistId]); // Re-fetch if therapistId changes
-  console.log("ji"+therapistId);
+  }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Fetch user details (from the token)
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch('http://localhost:5000/api/users/me', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) throw new Error('User not found');
+        const data = await response.json();
+        setFormData(prev => ({
+          ...prev,
+          userName: data.name,
+          userEmail: data.email
+        }));
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,21 +78,25 @@ const BookAppointment = () => {
 
   const sendEmailWithPDF = async () => {
     const token = localStorage.getItem('token');
-    await fetch('http://localhost:5000/api/appointments/book', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        userName: formData.userName,
-        userEmail: formData.userEmail,
-        doctorName: formData.doctorName,
-        appointmentTime: new Date(),
-        therapistId, // Include therapistId in the request
-        message: "Appointment details attached"
-     
-      })
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/appointments/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          userName: formData.userName,
+          userEmail: formData.userEmail,
+          doctorName: formData.doctorName,
+          appointmentTime: new Date(),
+          therapistId: id, // Use therapist ID from the URL params
+          message: "Appointment details attached"
+        })
+      });
+      if (!response.ok) throw new Error('Failed to book appointment');
+      alert('Appointment booked successfully!');
+    } catch (err) {
+      console.error('Error:', err.message);
+    }
   };
-
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -89,22 +106,7 @@ const BookAppointment = () => {
     <div>
       <h2>Book Appointment with {therapist.name}</h2>
       <form onSubmit={handleSubmit}>
-        <input 
-          type="text" 
-          name="userName" 
-          placeholder="Your Name" 
-          value={formData.userName} 
-          onChange={handleChange} 
-          required 
-        />
-        <input 
-          type="email" 
-          name="userEmail" 
-          placeholder="Your Email" 
-          value={formData.userEmail} 
-          onChange={handleChange} 
-          required 
-        />
+        <p>Logged in as: {formData.userName} ({formData.userEmail})</p>
         <input type="hidden" name="doctorName" value={formData.doctorName} />
         <button type="submit">Submit</button>
       </form>

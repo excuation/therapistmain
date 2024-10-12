@@ -45,7 +45,7 @@ const therapistRoutes = require('./routes/therapists');
 app.use('/api', therapistRoutes);  // Ensure the route is registered
 const historyRoutes = require('./routes/history'); // Adjust the path as necessary
 app.use('/api/history', historyRoutes); // Set the prefix for the history routes
-
+app.use('/api/users', authRoutes); 
 
 app.use((req, res) => {
     res.status(404).json({ msg: '404 Not Found' });

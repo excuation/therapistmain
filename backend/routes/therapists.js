@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Therapist = require('../models/theripest');  // Import the corrected Therapist model
+const Therapist = require('../models/theripest'); // Adjust the path as necessary
 
 // Route to get therapist details by ID
 router.get('/therapists/:id', async (req, res) => {

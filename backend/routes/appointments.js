@@ -1,32 +1,60 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
-const fs = require('fs');
-const PDFDocument = require('pdfkit');
-const Appointment = require('../models/Appointmentdatabase');
-const Therapist = require('../models/theripest'); // Import the correct Therapist model
-const path = require('path');
 const router = express.Router();
+const Appointment = require('../models/Appointmentdatabase');
+const History = require('../models/history');
+const Therapist = require('../models/theripest'); // Ensure you're using the correct model name
+const authMiddleware = require('../middleware/authMiddleware'); // Middleware for authentication
+const PDFDocument = require('pdfkit'); // Make sure you have this installed
+const fs = require('fs');
+const nodemailer = require('nodemailer');
+const path = require('path'); // <-- Import path module
 
 // Route to book an appointment
-router.post('/book', async (req, res) => {
-    const { userName, userEmail, doctorName, appointmentTime, message } = req.body;
-    const pdfPath = path.join(__dirname, `../uploads/${userName}_appointment.pdf`);
-
+router.post('/book', authMiddleware, async (req, res) => {
     try {
-        console.log('Received data:', req.body);
+        const { therapistId, appointmentTime, message } = req.body;
+        const pdfPath = path.join(__dirname, '../uploads', `appointment-${Date.now()}.pdf`);
 
-        // Save the appointment in the database
+        // Fetch the therapist details from the database
+        const therapist = await Therapist.findById(therapistId);
+        if (!therapist) {
+            return res.status(404).json({ msg: 'Therapist not found' });
+        }
+
+        // Use authenticated user's details (from the auth middleware)
+        const userId = req.user.id;
+        const userName = req.user.name;
+        const userEmail = req.user.email;
+
+        // Create a new appointment
         const newAppointment = new Appointment({
-            userName,
-            userEmail,
-            doctorName,
-            appointmentTime,
-            message
+            userId, // Reference to the logged-in user
+            userName, // Name of the logged-in user
+            userEmail, // Email of the logged-in user
+            therapistId: therapist._id, // ID of the therapist
+            doctorName: therapist.name, // Name of the therapist
+            appointmentTime, // Appointment time from the request body
+            message // Optional message from the request body
         });
+
+        // Save the appointment to the database
         await newAppointment.save();
 
+        // Save the action in the history collection
+        const newHistory = new History({
+            userId,
+            action: 'Appointment booked',
+            therapistId: therapist._id,
+            therapistName: therapist.name,
+            username: userName,
+            email: userEmail,
+            date: new Date(),
+        });
+
+        await newHistory.save();
+
         // Generate the PDF
-        await generatePDF(pdfPath, userName, doctorName, appointmentTime);
+        await generatePDF(pdfPath, userName, therapist.name, appointmentTime);
 
         // Send the email with the PDF attachment
         await sendEmail(userEmail, pdfPath);
@@ -40,10 +68,10 @@ router.post('/book', async (req, res) => {
 });
 
 // Function to generate PDF
-const generatePDF = (path, userName, doctorName, appointmentTime) => {
+const generatePDF = (pdfPath, userName, doctorName, appointmentTime) => {
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument();
-        const writeStream = fs.createWriteStream(path);
+        const writeStream = fs.createWriteStream(pdfPath);
 
         doc.pipe(writeStream);
         doc.fontSize(25).text('Appointment Confirmation', { align: 'center' });

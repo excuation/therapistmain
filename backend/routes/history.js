@@ -6,7 +6,7 @@ const router = express.Router();
 // Route to get user's history
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const histories = await History.find({ userId: req.user._id }); // Fetch history based on user ID
+        const histories = await History.find({ userId: req.user._id }).populate('therapistId'); // Fetch history based on user ID
         console.log(histories);
         res.json(histories);
     } catch (error) {

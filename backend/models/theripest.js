@@ -1,16 +1,16 @@
-// models/theripest.js
+// models/Therapist.js
 const mongoose = require('mongoose');
 
-// Define the theripest schema
-const theripestSchema = new mongoose.Schema({
-    name: { type: String, required: true }, // Name of the doctor or service
-    description: { type: String, required: true }, // Description of the doctor or service
+const TherapistSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: { type: String, required: true },
     doctorDetails: {
-        name: { type: String, required: true }, // Doctor's name
-        specialization: { type: String }, // Doctor's specialization
-        experience: { type: Number } // Doctor's years of experience
-    }
+        name: { type: String, required: true },
+        specialization: { type: String, required: true },
+        yearsOfExperience: { type: Number, required: true }
+    },
+    // Add any other fields you need
 });
 
-// Export the model based on the schema
-module.exports = mongoose.model('theripest', theripestSchema);
+const Therapist = mongoose.model('theripest', TherapistSchema);
+module.exports = Therapist;

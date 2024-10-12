@@ -39,6 +39,7 @@ const History = () => {
           {historyData.map((record) => (
             <li key={record._id}>
               {new Date(record.date).toLocaleString()} - {record.username} - {record.action}
+              {record.therapistName && ` - Therapist: ${record.therapistName}`}
             </li>
           ))}
         </ul>
