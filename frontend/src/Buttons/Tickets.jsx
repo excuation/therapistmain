@@ -31,7 +31,7 @@ const Tickets = () => {
       </div>
 
       <div style={{ marginBottom: '15px' }}>
-        <strong>Therapist:</strong> <span>Dr. Sairil Tomar</span>
+        <strong>Therapist:</strong> <span>Dr. Anurag sharma</span>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
