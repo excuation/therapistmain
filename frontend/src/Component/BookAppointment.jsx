@@ -23,7 +23,7 @@ const BookAppointment = () => {
   useEffect(() => {
     const fetchTherapist = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/therapists/${id}`);
+        const response = await fetch(`https://therapist1.onrender.com`);
         if (!response.ok) throw new Error('Therapist not found');
         const data = await response.json();
         setTherapist(data);
@@ -41,7 +41,7 @@ const BookAppointment = () => {
     const fetchUserDetails = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch('http://localhost:5000/api/users/me', {
+        const response = await fetch('https://therapist1.onrender.com', {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -112,7 +112,7 @@ const BookAppointment = () => {
   const sendEmailWithPDF = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:5000/api/appointments/book', {
+      const response = await fetch('https://therapist1.onrender.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
