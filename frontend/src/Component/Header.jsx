@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FaUserCircle, FaUserMd } from 'react-icons/fa';
 import Logo from '../Buttons/Logo.jpg';
 
 const Header = ({ isAuthenticated, profilePicture, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const location = useLocation(); // To detect route changes
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
@@ -18,6 +19,11 @@ const Header = ({ isAuthenticated, profilePicture, onLogout }) => {
       navigate(`/theripest?query=${encodeURIComponent(searchQuery)}`);
     }
   };
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setDropdownOpen(false); // Close the dropdown when the route changes
+  }, [location]);
 
   return (
     <header className="p-3 text-bg-dark">
@@ -32,17 +38,18 @@ const Header = ({ isAuthenticated, profilePicture, onLogout }) => {
           </Link>
 
           <ul className="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-            <li><Link to="/places" className="nav-link px-2 text-white">Contact Us</Link></li>
-            <li><Link to="/tickets" className="nav-link px-2 text-white">Book Appointment</Link></li>
-            <li><Link to="/services" className="nav-link px-2 text-white">Service</Link></li>
+            <li><Link to="/contact-us" className="nav-link px-2 text-white">Contact Us</Link></li>
+            <li><Link to="/tickets" className="nav-link px-2 text-white">Appointment</Link></li>
+            <li><Link to="/services" className="nav-link px-2 text-white">Emergency</Link></li>
             <li><Link to="/help" className="nav-link px-2 text-white">Help</Link></li>
           </ul>
 
-          <form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" onSubmit={handleSearchSubmit}>
+          <form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3 d-flex align-items-center" role="search" onSubmit={handleSearchSubmit}>
+            <FaUserMd style={{ marginRight: '8px', color: '#fff' }} />
             <input
               type="search"
               className="form-control form-control-dark text-bg-dark"
-              placeholder="Select Therapist Name"
+              placeholder="Search Therapist"
               aria-label="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -92,4 +99,3 @@ const Header = ({ isAuthenticated, profilePicture, onLogout }) => {
 };
 
 export default Header;
-``

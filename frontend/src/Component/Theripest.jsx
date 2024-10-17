@@ -15,7 +15,7 @@ const Theripest = () => {
   useEffect(() => {
     if (query) {
       setLoading(true); // Ensure loading state is true before fetch starts
-      fetch(`https://therapist1.onrender.com`, { method: 'GET', cache: 'no-store' })
+      fetch(`http://localhost:5000/api/search?query=${query}`, { method: 'GET', cache: 'no-store' })
         .then(response => {
           if (!response.ok) {
             throw new Error("Network response was not ok"); // Handle network errors

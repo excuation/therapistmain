@@ -1,29 +1,28 @@
-// Services.jsx
 import React, { useState } from 'react';
 
 const Services = () => {
-  // State for search/filter functionality
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Example data for therapy services
+  // Example data for therapy services with contact numbers and emergency tag
   const services = [
-    { id: 1, title: 'Mental Health Counseling', description: 'Professional counseling to support mental health.', category: 'Mental Health' },
-    { id: 2, title: 'Physical Therapy', description: 'Help recovering from physical injuries or surgeries.', category: 'Physical Therapy' },
-    { id: 3, title: 'Family Therapy', description: 'Counseling to improve family relationships.', category: 'Counseling' },
+    { id: 1, title: 'Mental Health Counseling', description: 'Professional counseling to support mental health.', category: 'Mental Health', contact: '+1 (123) 456-7890', isEmergency: false },
+    { id: 2, title: 'Physical Therapy', description: 'Help recovering from physical injuries or surgeries.', category: 'Physical Therapy', contact: '+1 (987) 654-3210', isEmergency: true },
+    { id: 3, title: 'Family Therapy', description: 'Counseling to improve family relationships.', category: 'Counseling', contact: '+1 (555) 123-4567', isEmergency: false },
   ];
 
-  // Filter services based on search term and selected category
   const filteredServices = services.filter(service => 
     (selectedCategory === 'All' || service.category === selectedCategory) &&
     service.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Inline styles
   const styles = {
     container: {
       padding: '20px',
       fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#121212',
+      color: '#fff',
+      minHeight: '100vh',
     },
     header: {
       textAlign: 'center',
@@ -40,11 +39,15 @@ const Services = () => {
       borderRadius: '4px',
       border: '1px solid #ccc',
       width: '200px',
+      backgroundColor: '#222',
+      color: '#fff',
     },
     select: {
       padding: '10px',
       borderRadius: '4px',
       border: '1px solid #ccc',
+      backgroundColor: '#222',
+      color: '#fff',
     },
     featuredServices: {
       display: 'flex',
@@ -52,23 +55,28 @@ const Services = () => {
       gap: '15px',
     },
     serviceCard: {
-      border: '1px solid #ddd',
+      border: '1px solid #333',
       borderRadius: '4px',
       padding: '15px',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      backgroundColor: '#1f1f1f',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
       textAlign: 'center',
     },
     button: {
       padding: '10px 15px',
       border: 'none',
       borderRadius: '4px',
-      backgroundColor: '#28a745',
+      backgroundColor: '#007BFF',
       color: '#fff',
       cursor: 'pointer',
       fontSize: '16px',
     },
     buttonHover: {
-      backgroundColor: '#218838',
+      backgroundColor: '#0056b3',
+    },
+    emergency: {
+      color: 'red',
+      fontWeight: 'bold',
     },
   };
 
@@ -103,6 +111,8 @@ const Services = () => {
           <div key={service.id} style={styles.serviceCard}>
             <h2>{service.title}</h2>
             <p>{service.description}</p>
+            <p>Contact: {service.contact}</p>
+            {service.isEmergency && <p style={styles.emergency}></p>}
             <button 
               style={styles.button} 
               onMouseOver={(e) => e.currentTarget.style.backgroundColor = styles.buttonHover.backgroundColor} 

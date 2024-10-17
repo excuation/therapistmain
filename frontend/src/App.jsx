@@ -17,6 +17,7 @@ import Tickets from './Buttons/Tickets';
 import Explore from './Buttons/Explore'; 
 import Theripest from './Component/Theripest';
 import BookAppointment from './Component/BookAppointment';
+import ContactUs from './Buttons/ContactUs'; // Importing ContactUs
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,9 +61,13 @@ const App = () => {
           element={<Profile setProfilePicture={setProfilePicture} />} 
         />
         <Route path="/tickets" element={<Tickets />} />
+       
+
         <Route path="/services" element={<Explore />} />
         <Route path="/theripest" element={<Theripest />} />
         <Route path="/book-appointment/:id" element={<BookAppointment />} />
+        {/* Add the new route for Contact Us */}
+        <Route path="/contact-us" element={<ContactUs />} />
       </Routes>
       <Chatboard />
       <Footer />

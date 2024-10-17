@@ -22,7 +22,7 @@ const Signup = () => {
         const userData = { name, email, password, confirmPassword };
 
         try {
-            const response = await axios.post('https://therapist1.onrender.com', userData);
+            const response = await axios.post('http://localhost:5000/api/signup', userData);
             if (response.status === 201) {
                 setSuccessMessage(response.data.msg);
                 localStorage.setItem('token', response.data.token);

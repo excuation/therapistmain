@@ -1,50 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Tickets = () => {
+  const [appointmentData, setAppointmentData] = useState(null);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('appointmentData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      const appointmentDate = new Date(parsedData.date);
+
+      // Compare the appointment date with the current date
+      const currentDate = new Date();
+
+      if (appointmentDate >= currentDate) {
+        setAppointmentData(parsedData); // Set data if appointment date is today or in the future
+      }
+    }
+  }, []);
+
+  if (!appointmentData) {
+    return <p style={{ color: '#fff', textAlign: 'center' }}>No appointment data available.</p>;
+  }
+
   return (
-    <div
-      style={{
-        width: '350px',
-        margin: '20px auto',
-        padding: '20px',
-        border: '2px solid #28a745',
-        borderRadius: '10px',
-        backgroundColor: '#f8f9fa',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        fontFamily: 'Arial, sans-serif',
-      }}
-    >
-      <h2 style={{ textAlign: 'center', color: '#28a745', marginBottom: '20px' }}>
-        Appointment
-      </h2>
-
-      <div style={{ marginBottom: '15px' }}>
-        <strong>Service:</strong> <span>Mental Counseling</span>
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <strong>Date:</strong> <span>September 20, 2024</span>
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <strong>Time:</strong> <span>2:00 PM - 3:00 PM</span>
-      </div>
-
-      <div style={{ marginBottom: '15px' }}>
-        <strong>Therapist:</strong> <span>Dr. Anurag sharma</span>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <img
-          src="https://via.placeholder.com/100"
-          alt="QR Code"
-          style={{ borderRadius: '5px' }}
-        />
-      </div>
-
-      <p style={{ textAlign: 'center', marginTop: '15px', color: '#6c757d' }}>
-        Present this ticket for your therapy session.
-      </p>
+    <div style={{
+      backgroundColor: '#121212',
+      color: '#fff',
+      padding: '2rem',
+      borderRadius: '10px',
+      width: '80%',
+      margin: '2rem auto',
+      boxShadow: '0 0px 16px rgba(0, 0, 0, 0.3)',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h2 style={{ textAlign: 'center' }}>🗓️ Appointment Details</h2>
+      <p><strong>Service:</strong> 💼 {appointmentData.service}</p>
+      <p><strong>Date:</strong> 📅 {new Date(appointmentData.date).toLocaleDateString()}</p>
+      <p><strong>Time:</strong> ⏰ {new Date(appointmentData.time).toLocaleTimeString()}</p>
+      <p><strong>Therapist:</strong> 👩‍⚕️ {appointmentData.therapistName}</p>
+      <p><strong>Location:</strong> 📍 {appointmentData.location}</p>
+      <p><strong>Disease:</strong> 🏥 {appointmentData.disease}</p>
     </div>
   );
 };

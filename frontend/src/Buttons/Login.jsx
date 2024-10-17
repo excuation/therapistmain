@@ -21,7 +21,7 @@ const Login = ({ setIsAuthenticated }) => {
         }
 
         try {
-            const res = await axios.post('https://therapist1.onrender.com', { email, password });
+            const res = await axios.post('http://localhost:5000/api/login', { email, password });
             console.log('Login successful!', res.data.token);
 
             // Save token in localStorage

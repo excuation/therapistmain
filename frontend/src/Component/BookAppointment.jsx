@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FiCalendar, FiClock } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiMapPin, FiAlertTriangle } from 'react-icons/fi';
 
 const BookAppointment = () => {
-  const { id } = useParams(); // Therapist ID from URL params
+  const { id } = useParams();
+  const navigate = useNavigate(); // Corrected location
   const [therapist, setTherapist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,14 +17,15 @@ const BookAppointment = () => {
     doctorName: '',
     location: '',
     disease: '',
-    appointmentDate: new Date(), // For date picker
-    appointmentTime: new Date() // For time picker
+    appointmentDate: new Date(),
+    appointmentTime: new Date()
   });
 
   useEffect(() => {
     const fetchTherapist = async () => {
+      console.log("fetchTherapist called"); 
       try {
-        const response = await fetch(`https://therapist1.onrender.com`);
+        const response = await fetch(`http://localhost:5000/api/therapists/${id}`);
         if (!response.ok) throw new Error('Therapist not found');
         const data = await response.json();
         setTherapist(data);
@@ -41,7 +43,7 @@ const BookAppointment = () => {
     const fetchUserDetails = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch('https://therapist1.onrender.com', {
+        const response = await fetch('http://localhost:5000/api/users/me', {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -64,7 +66,6 @@ const BookAppointment = () => {
   const handleDateChange = (date) => setFormData(prev => ({ ...prev, appointmentDate: date }));
   const handleTimeChange = (time) => setFormData(prev => ({ ...prev, appointmentTime: time }));
 
-  // Updated formatting functions
   const formatAppointmentDate = (date) => {
     return date.toLocaleString('en-US', {
       day: 'numeric',
@@ -83,18 +84,34 @@ const BookAppointment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("handleSubmit called");
 
-    // Validate required fields
+    const appointmentData = {
+      service: 'Therapy Session',
+      date: formData.appointmentDate,
+      time: formData.appointmentTime,
+      therapistName: formData.doctorName,
+      location: formData.location,
+      disease: formData.disease,
+    };
+    console.log(appointmentData);
+    localStorage.setItem('appointmentData', JSON.stringify(appointmentData));
+
     if (!formData.disease.trim()) {
       alert('Please fill in the disease field.');
-      return; // Stop the submission if the disease field is empty
+      return;
     }
     if (!formData.location.trim()) {
       alert('Please fill in the location field.');
-      return; // Stop the submission if the location field is empty
+      return;
     }
 
     const element = document.getElementById('pdf-content');
+    if (!element) {
+      console.error("Element with ID 'pdf-content' not found.");
+      return;
+    }
+
     const pdfOptions = {
       margin: 1,
       filename: 'appointment.pdf',
@@ -103,16 +120,22 @@ const BookAppointment = () => {
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
-    // Generate PDF
-    html2pdf().from(element).set(pdfOptions).save().then(() => {
+    try {
+      console.log("Generating PDF...");
+      await html2pdf().from(element).set(pdfOptions).save();
+      console.log("PDF Generated Successfully");
+      alert('Appointment booked successfully!');
+      navigate('/tickets', { state: { appointmentData } });
       sendEmailWithPDF();
-    });
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+    }
   };
 
   const sendEmailWithPDF = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('https://therapist1.onrender.com', {
+      const response = await fetch('http://localhost:5000/api/appointments/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,13 +144,12 @@ const BookAppointment = () => {
         body: JSON.stringify({
           ...formData,
           therapistId: id,
-          appointmentTime: formData.appointmentTime.toLocaleDateString(),
-          appointmentDate: formData.appointmentDate.toLocaleTimeString(),
+          appointmentTime: formData.appointmentTime.toISOString(),
+          appointmentDate: formData.appointmentDate.toLocaleDateString(),
           location: formData.location,
           disease: formData.disease,
         })
       });
-      console.log(formData.appointmentTime);
       if (!response.ok) throw new Error('Failed to book appointment');
       alert('Appointment booked successfully!');
     } catch (err) {
@@ -144,9 +166,9 @@ const BookAppointment = () => {
       color: '#fff',
       padding: '2rem',
       borderRadius: '10px',
-      maxWidth: '600px',
+      width: '100%',
       margin: 'auto',
-      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)'
+      boxShadow: '0 0px 16px rgba(0, 0, 0, 0.3)'
     }}>
       <h2>Book Appointment with {therapist.name}</h2>
       <form onSubmit={handleSubmit} style={{
@@ -157,126 +179,144 @@ const BookAppointment = () => {
         <p>Logged in as: {formData.userName} ({formData.userEmail})</p>
 
         <label style={{ fontSize: '1.2rem', color: '#b3b3b3' }}>Location</label>
-        <input 
-          type="text" 
-          value={formData.location} 
-          onChange={e => setFormData({ ...formData, location: e.target.value })} 
-          placeholder="Enter your location"
-          style={{
-            padding: '0.5rem',
-            fontSize: '1rem',
-            borderRadius: '5px',
-            border: '1px solid #555',
-            backgroundColor: '#222',
-            color: '#fff'
-          }}
-        />
-
-        <label style={{ fontSize: '1.2rem', color:'#b3b3b3' }}>Disease</label>
-        <input 
-          type="text" 
-          value={formData.disease} 
-          onChange={e => setFormData({ ...formData, disease:e.target.value })} 
-          placeholder="Enter your disease"
-          style={{
-            padding:'0.5rem',
-            fontSize:'1rem',
-            borderRadius:'5px',
-            border:'1px solid #555',
-            backgroundColor:'#222',
-            color:'#fff'
-          }}
-        />
-
-        <label style={{ fontSize:'1.2rem', color:'#b3b3b3' }}>Appointment Date</label>
-        <div style={{
-          position:'relative',
-          display:'flex',
-          alignItems:'center'
-        }}>
-          <FiCalendar style={{
-            position:'absolute',
-            left:'10px',
-            fontSize:'1.5rem',
-            color:'#b3b3b3'
+        <div style={{ position: 'relative' }}>
+          <FiMapPin style={{
+            position: 'absolute',
+            left: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '1.5rem',
+            color: '#b3b3b3'
           }} />
-          <DatePicker 
-            selected={formData.appointmentDate} 
-            onChange={handleDateChange} 
-            dateFormat="MMMM d, yyyy"
+          <input
+            type="text"
+            value={formData.location}
+            onChange={e => setFormData({ ...formData, location: e.target.value })}
+            placeholder="Enter your location"
             style={{
-              width:'100%',
-              padding:'0.5rem 0.5rem 0.5rem 2rem',
-              borderRadius:'5px',
-              border:'1px solid #555',
-              backgroundColor:'#222',
-              color:'#fff'
+              padding: '0.5rem 0.5rem 0.5rem 2.5rem',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: '1px solid #555',
+              backgroundColor: '#222',
+              color: '#fff'
             }}
           />
         </div>
 
-        <label style={{ fontSize:'1.2rem', color:'#b3b3b3' }}>Appointment Time</label>
+        <label style={{ fontSize: '1.2rem', color: '#b3b3b3' }}>Disease</label>
+        <div style={{ position: 'relative' }}>
+          <FiAlertTriangle style={{
+            position: 'absolute',
+            left: '10px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '1.5rem',
+            color: '#b3b3b3'
+          }} />
+          <input
+            type="text"
+            value={formData.disease}
+            onChange={e => setFormData({ ...formData, disease: e.target.value })}
+            placeholder="Enter your disease"
+            style={{
+              padding: '0.5rem 0.5rem 0.5rem 2.5rem',
+              fontSize: '1rem',
+              borderRadius: '5px',
+              border: '1px solid #555',
+              backgroundColor: '#222',
+              color: '#fff'
+            }}
+          />
+        </div>
+
+        <label style={{ fontSize: '1.2rem', color: '#b3b3b3' }}>Appointment Date</label>
         <div style={{
-          position:'relative',
-          display:'flex',
-          alignItems:'center'
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <FiCalendar style={{
+            position: 'absolute',
+            left: '10px',
+            fontSize: '1.5rem',
+            color: '#b3b3b3'
+          }} />
+          <DatePicker
+            selected={formData.appointmentDate}
+            onChange={handleDateChange}
+            dateFormat="MMMM d, yyyy"
+            style={{
+              width: '100%',
+              padding: '0.5rem 0.5rem 0.5rem 2rem',
+              borderRadius: '5px',
+              border: '1px solid #555',
+              backgroundColor: '#222',
+              color: '#fff'
+            }}
+          />
+        </div>
+
+        <label style={{ fontSize: '1.2rem', color: '#b3b3b3' }}>Appointment Time</label>
+        <div style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center'
         }}>
           <FiClock style={{
-            position:'absolute',
-            left:'10px',
-            fontSize:'1.5rem',
-            color:'#b3b3b3'
+            position: 'absolute',
+            left: '10px',
+            fontSize: '1.5rem',
+            color: '#b3b3b3'
           }} />
-          <DatePicker 
-            selected={formData.appointmentTime} 
-            onChange={handleTimeChange} 
-            showTimeSelect 
-            showTimeSelectOnly 
-            timeIntervals={15} 
-            timeCaption="Time" 
+          <DatePicker
+            selected={formData.appointmentTime}
+            onChange={handleTimeChange}
+            showTimeSelect
+            showTimeSelectOnly
+            timeIntervals={15}
+            timeCaption="Time"
             dateFormat="h:mm aa"
             style={{
-              width:'100%',
-              padding:'0.5rem 0.5rem 0.5rem 2rem',
-              borderRadius:'5px',
-              border:'1px solid #555',
-              backgroundColor:'#222',
-              color:'#fff'
+              width: '100%',
+              padding: '0.5rem 0.5rem 0.5rem 2rem',
+              borderRadius: '5px',
+              border: '1px solid #555',
+              backgroundColor: '#222',
+              color: '#fff'
             }}
           />
         </div>
 
         <button type="submit" style={{
-          backgroundColor:'#1a73e8',
-          color:'white',
-          border:'none',
-          padding:'0.75rem 1.5rem',
-          borderRadius:'5px',
-          fontSize:'1.2rem',
-          cursor:'pointer',
-          textAlign:'center',
-          transition:'background-color 0.3s'
-        }}>Submit</button>
+          backgroundColor: '#007bff',
+          color: '#fff',
+          padding: '0.75rem',
+          fontSize: '1.2rem',
+          borderRadius: '5px',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem'
+        }}>
+          <FiCalendar /> Book Appointment
+        </button>
       </form>
 
-      {/* Hidden div for PDF generation */}
-      <div id="pdf-content" style={{ display:'none' }}>
-        <h3>Appointment Details</h3>
-        <p>Name:{formData.userName}</p>
-        <p>Email:{formData.userEmail}</p>
-        <p>Doctor Name:{formData.doctorName}</p>
-        <p>Location:{formData.location}</p>
-        <p>Disease:{formData.disease}</p>
-        
-        {/* Use updated formatting functions */}
-        <p>Appointment Date:{formatAppointmentDate(new Date(formData.appointmentDate))}</p>
-        
-        {/* Use updated formatting functions */}
-        <p>Appointment Time:{formatAppointmentTime(new Date(formData.appointmentTime))}</p>
-        
+      <div id="pdf-content" style={{ display: 'none' }}>
+        <h1>Appointment Details</h1>
+        <p>Patient Name: {formData.userName}</p>
+        <p>Doctor Name: {formData.doctorName}</p>
+        <p>Date: {formatAppointmentDate(formData.appointmentDate)}</p>
+        <p>Time: {formatAppointmentTime(formData.appointmentTime)}</p>
+        <p>Location: {formData.location}</p>
+        <p>Disease: {formData.disease}</p>
       </div>
     </div>
-   );
+  );
 };
 
 export default BookAppointment;

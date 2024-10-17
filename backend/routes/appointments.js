@@ -3,14 +3,14 @@ const router = express.Router();
 const Appointment = require('../models/Appointmentdatabase');
 const History = require('../models/history');
 const Therapist = require('../models/theripest'); // Ensure you're using the correct model name
+const Ticket = require('../models/ticket'); // Import Ticket model
 const authMiddleware = require('../middleware/authMiddleware'); // Middleware for authentication
-const PDFDocument = require('pdfkit'); // Make sure you have this installed
+const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-const path = require('path'); // <-- Import path module
+const path = require('path');
 
-// Route to book an appointment
-// Route to book an appointment
+// Route to book an appointment and save ticket info
 router.post('/book', authMiddleware, async (req, res) => {
     try {
         const { therapistId, appointmentTime, message, location, disease } = req.body;
@@ -30,13 +30,13 @@ router.post('/book', authMiddleware, async (req, res) => {
 
         // Create a new appointment
         const newAppointment = new Appointment({
-            userId, // Reference to the logged-in user
-            userName, // Name of the logged-in user
-            userEmail, // Email of the logged-in user
-            therapistId: therapist._id, // ID of the therapist
-            doctorName: therapist.name, // Name of the therapist
-            appointmentTime, // Appointment time from the request body
-            message, // Optional message from the request body
+            userId,
+            userName,
+            userEmail,
+            therapistId: therapist._id,
+            doctorName: therapist.name,
+            appointmentTime,
+            message,
             location, // Add location field
             disease,  // Add disease field
         });
@@ -57,14 +57,31 @@ router.post('/book', authMiddleware, async (req, res) => {
 
         await newHistory.save();
 
-        // Generate the PDF, pass location and disease to the function
+        // Create a new ticket with the relevant details
+        const newTicket = new Ticket({
+            therapistId: therapist._id,
+            service: "Mental Counseling",
+            date: appointmentTime,
+            time: appointmentTime,
+            therapistName: therapist.name,
+            userName,
+            location,
+            disease,
+            userId
+        });
+        await newTicket.save();
+
+        // Save the ticket to the database
+        await newTicket.save();
+
+        // Generate the PDF and pass location and disease to the function
         await generatePDF(pdfPath, userName, therapist.name, appointmentTime, location, disease);
 
         // Send the email with the PDF attachment
         await sendEmail(userEmail, pdfPath);
 
         // Respond to the client
-        res.status(200).json({ message: 'Appointment booked and email sent successfully!' });
+        res.status(200).json({ message: 'Appointment booked, ticket saved, and email sent successfully!' });
     } catch (error) {
         console.error('Error booking appointment:', error);
         res.status(500).json({ message: 'Error booking appointment or sending email', error });
@@ -76,8 +93,7 @@ const generatePDF = (pdfPath, userName, doctorName, appointmentTime, location, d
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument();
         const writeStream = fs.createWriteStream(pdfPath);
-        console.log(location); // This should now output the correct location
-      
+
         doc.pipe(writeStream);
         doc.fontSize(30).text('Appointment Confirmation', { align: 'center' });
         doc.moveDown();
@@ -99,7 +115,6 @@ const generatePDF = (pdfPath, userName, doctorName, appointmentTime, location, d
         });
     });
 };
-
 
 // Function to send email with PDF attachment
 const sendEmail = async (toEmail, pdfPath) => {
